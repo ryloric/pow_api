@@ -1,26 +1,20 @@
 defmodule PowApiWeb.Router do
   use PowApiWeb, :router
 
-  pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-  end
-
   pipeline :api do
     plug :accepts, ["json"]
+    plug PowApiWeb.APIAuthPlug, otp_app: :pow_api
   end
 
-  scope "/", PowApiWeb do
-    pipe_through :browser
-
-    get "/", PageController, :index
+  pipeline :protected do
+    plug Pow.Plug.RequireAuthenticated, error_handler: PowApiWeb.APIAuthErrorHandler
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", PowApiWeb do
-  #   pipe_through :api
-  # end
+  scope "/api/v1", PowApiWeb.API.V1 do
+    pipe_through :api
+
+    resources "/registration", RegistrationController, singleton: true, only: [:create]
+    resources "/session", SessionController, singleton: true, only: [:create, :delete]
+    post "/session/renew", SessionController, :renew
+  end
 end
