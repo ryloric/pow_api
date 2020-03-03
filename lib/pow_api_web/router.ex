@@ -18,5 +18,6 @@ defmodule PowApiWeb.Router do
     post "/session/renew", SessionController, :renew
 
     resources "/confirm-email", ConfirmationController, only: [:show]
+    post "/resend-confirm-email", ResendConfirmEmailController, :resend_email
   end
 end
