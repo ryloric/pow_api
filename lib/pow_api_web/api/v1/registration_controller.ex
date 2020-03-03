@@ -10,8 +10,8 @@ defmodule PowApiWeb.API.V1.RegistrationController do
     conn
     |> custom_create(user_params)
     |> case do
-      {:ok, _user} ->
-        #TODO: Send confirmation email here
+      {:ok, user} ->
+        send_confirmation_email(user, conn)
         json(conn, %{data: %{message: "Please check your email"}})
 
       {:error, changeset} ->
@@ -28,5 +28,18 @@ defmodule PowApiWeb.API.V1.RegistrationController do
 
     user_params
     |> Pow.Operations.create(config)
+  end
+
+  defp send_confirmation_email(user, conn) do
+    url = confirmation_url(user.email_confirmation_token)
+    unconfirmed_user = %{user | email: user.unconfirmed_email || user.email}
+    email = PowEmailConfirmation.Phoenix.Mailer.email_confirmation(conn, unconfirmed_user, url)
+
+    Pow.Phoenix.Mailer.deliver(conn, email)
+  end
+
+  defp confirmation_url(token) do
+    Application.get_env(:pow_api, PowApiWeb.Endpoint)[:front_end_email_confirm_url]
+    |> String.replace("{token}", token)
   end
 end

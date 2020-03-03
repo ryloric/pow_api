@@ -16,7 +16,8 @@ config :pow_api, PowApiWeb.Endpoint,
   secret_key_base: "7KZbzLZEqcxUnSg9MJoH/i4Z0w0pIjtjmKp+1pJLz59O01likqYLq0VbRZSHAFgL",
   render_errors: [view: PowApiWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: PowApi.PubSub, adapter: Phoenix.PubSub.PG2],
-  live_view: [signing_salt: "29bbuQVS"]
+  live_view: [signing_salt: "29bbuQVS"],
+  front_end_email_confirm_url: "http://localhost:1234/confirm-email/{token}"
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -29,7 +30,10 @@ config :phoenix, :json_library, Jason
 # Configures POW
 config :pow_api, :pow,
   user: PowApi.Users.User,
-  repo: PowApi.Repo
+  repo: PowApi.Repo,
+  mailer_backend: PowApiWeb.PowMailer,
+  extensions: [PowEmailConfirmation, PowResetPassword],
+  controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

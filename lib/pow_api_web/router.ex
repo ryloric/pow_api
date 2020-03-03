@@ -16,5 +16,7 @@ defmodule PowApiWeb.Router do
     resources "/registration", RegistrationController, singleton: true, only: [:create]
     resources "/session", SessionController, singleton: true, only: [:create, :delete]
     post "/session/renew", SessionController, :renew
+
+    resources "/confirm-email", ConfirmationController, only: [:show]
   end
 end

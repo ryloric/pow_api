@@ -9,8 +9,13 @@ defmodule PowApiWeb.API.V1.SessionController do
     |> Pow.Plug.authenticate_user(user_params)
     |> case do
       {:ok, conn} ->
-        # TODO: Check here if email's verified.
-        token_pair_json(conn)
+        if PowEmailConfirmation.Plug.email_unconfirmed?(conn) do
+          Pow.Plug.delete(conn)
+          |> put_status(401)
+          |> json(%{error: %{status: 401, message: "Please register or confirm your registration email"}})
+        else
+          token_pair_json(conn)
+        end
 
       {:error, conn} ->
         conn
@@ -42,8 +47,7 @@ defmodule PowApiWeb.API.V1.SessionController do
 
   @spec delete(Conn.t(), map()) :: Conn.t()
   def delete(conn, _params) do
-    {:ok, _, conn} = Pow.Plug.delete_user(conn)
-
-    json(conn, %{data: %{}})
+    Pow.Plug.delete(conn)
+    |> json(%{data: %{}})
   end
 end
