@@ -32,7 +32,7 @@ config :pow_api, :pow,
   user: PowApi.Users.User,
   repo: PowApi.Repo,
   mailer_backend: PowApiWeb.PowMailer,
-  extensions: [PowEmailConfirmation, PowResetPassword],
+  extensions: [PowEmailConfirmation, PowResetPassword, PowPersistentSession],
   controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks
 
 # Import environment specific config. This must remain at the bottom
