@@ -33,6 +33,9 @@ defmodule PowApiWeb.APIAuthPlug do
     CredentialsCache.put(store_config, auth_token, {user, []})
     PersistentSessionCache.put(store_config, renew_token, user.id)
 
+    PersistentSessionCache.get(store_config, renew_token)
+    |> IO.inspect(label: "Inside create")
+
     {conn, user}
   end
 

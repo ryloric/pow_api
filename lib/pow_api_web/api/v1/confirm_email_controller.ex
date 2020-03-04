@@ -1,14 +1,31 @@
-defmodule PowApiWeb.API.V1.ResendConfirmEmailController do
+defmodule PowApiWeb.API.V1.ConfirmEmailController do
   use PowApiWeb, :controller
+
+  alias Plug.Conn
+
+  @spec confirm(Conn.t(), map()) :: Conn.t()
+  def confirm(conn, %{"token" => token}) do
+    case PowEmailConfirmation.Plug.confirm_email(conn, token) do
+      {:ok, _user, conn} ->
+        conn
+        |> json(%{data: %{message: "Email confirmed"}})
+
+      {:error, _changeset, conn} ->
+        conn
+        |> put_status(401)
+        |> json(%{error: %{status: 401, message: "Invalid confirmation code"}})
+    end
+  end
 
   @spec resend_email(Conn.t(), map()) :: Conn.t()
   def resend_email(conn, %{"email" => email}) do
     config = Pow.Plug.fetch_config(conn)
 
-    case Pow.Operations.get_by([email: email], config) do
+    case Pow.Ecto.Context.get_by([email: email], config) do
       nil ->
-        # This feels weird, should error out somehow.
-        json(conn, %{data: %{message: "Email not registered"}})
+        conn
+        |> put_status(401)
+        |> json(%{error: %{message: "Email not registered"}})
 
       user ->
         config = Pow.Plug.fetch_config(conn)
@@ -24,7 +41,6 @@ defmodule PowApiWeb.API.V1.ResendConfirmEmailController do
     end
   end
 
-  # TODO Refactor this out.
   defp resend_email_helper(user, conn) do
     url = confirmation_url(user.email_confirmation_token)
     unconfirmed_user = %{user | email: user.unconfirmed_email || user.email}
