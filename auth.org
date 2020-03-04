@@ -1,0 +1,62 @@
+* SignIn behavior [9/11]
+- [X] Endpoint at /session.
+- [X] Accept POST
+- [X] Expect ~{"user": {"email": <email>, "password": <password>}}~
+- [X] Reject if the body is not encoded as expected.
+- [X] Reject if email does not pass validation checks.
+- [X] Reject if password does not match validation checks.
+- [X] Reject if email is not registered.
+- [X] Reject if email is registered but not yet verified.
+- [X] Reject if the email is registered and verified but password is wrong.
+- [ ] Reject if the email/password is correct but there's an active session.
+- [-] Accept if email/password combo is correct [3/4]
+  - [X] Create new session and set auth_token and renew_token in conn.
+  - [X] Store the auth_token in session cache.
+  - [ ] Store renew_token in persistent cache.
+  - [X] Respond with 200, ~{"data": {"auth_token": <auth_token>, "renew_token": <renew_token>}}~
+
+* Registration behavior [9/10]
+- [X] Endpoint at /registration.
+- [X] Accept POST
+- [X] Expect ~{"user": {"email": <email>, "password": <password>,
+  "confirm_password": <confirm_password>}}~
+- [X] Reject if body is not encoded as expected.
+- [X] Reject if email is already registered.
+- [X] Reject if email does not match validation checks.
+- [X] Reject if password does not pass validation checks.
+- [X] Reject if password and password_again do not match.
+- [ ] Idempotency with a key.
+      Not implemented, but important here. We need to be able to respond
+      properly in case the request doesn't succeed but Db is changed.
+- [X] Accept otherwise [3/3]
+  - [X] Create new user.
+  - [X] Send verification email with token.
+  - [X] Respond with 200 and ~{"data": {"message": "Please check your email"}}~
+
+* Verification link behavior [7/8]
+- [X] Endpoint at /confirm-email
+- [X] Accept POST.
+- [ ] Idempotency.
+      Nope, if the link is clicked again, it responds with 401. Probably the
+      desired behavior though. Link only works one time.
+- [X] Expect ~{"token": <token>}~
+- [X] Reject if token is invalid.
+- [X] Reject if email is not registred.
+- [X] Reject if email is already verified.
+- [X] Accept otherwise. [2/2]
+  - [X] Set user verified.
+  - [X] Respond with 200 ~{"data": {"message": "Email confirmed"}}~
+
+* Resend verification link behavior [6/7]
+- [X] Endpoint at /resend-confirm-email
+- [X] Accept POST.
+- [X] Idempotency.
+      Sort of.. It doesn't do anything if the email is already verified.
+- [X] Expect ~{"email": <email>}~
+- [X] Reject if email is not registered.
+- [ ] Create a new token when resending.
+      ATM just sends the same token again.
+- [X] Accept otherwise. [2/2]
+  - [X] If email unverified, resend email. Respond with ~{"data": {"message":
+    "Email re-sent"}}~
+  - [X] If already verified, respond with ~{"data": {"message": "Email already verified"}}~
